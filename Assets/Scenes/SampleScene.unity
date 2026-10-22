@@ -1078,7 +1078,7 @@ GameObject:
   - component: {fileID: 404493429}
   - component: {fileID: 404493435}
   m_Layer: 0
-  m_Name: Plane (20)
+  m_Name: sipka
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
