@@ -4321,6 +4321,12 @@ MonoBehaviour:
   sourceSurface: {fileID: 925089253}
   restrictedSurface: {fileID: 1612579562}
   exitSurface: {fileID: 855351283}
+  finalSurface: {fileID: 855351283}
+  finalEntrySurface: {fileID: 1612579562}
+  finalExitSurfaces:
+  - {fileID: 291831628}
+  - {fileID: 404493434}
+  - {fileID: 280007044}
   surfaceHalfExtents: {x: 0.5, y: 0.5}
 --- !u!1 &1215442480
 GameObject:
