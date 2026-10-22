@@ -5,23 +5,27 @@ using UnityEngine.UI;
 
 public sealed class FinishGameOnTile : MonoBehaviour
 {
+    [SerializeField] private Transform startSurface;
     [SerializeField] private Transform finishSurface;
     [SerializeField] private Vector2 surfaceHalfExtents = new Vector2(0.5f, 0.5f);
 
     private Rigidbody playerRigidbody;
     private Vector3 finishPosition;
     private bool gameFinished;
+    private GameObject instructionsObject;
+    private GameObject gameOverObject;
 
     private void Awake()
     {
-        if (finishSurface == null)
+        if (startSurface == null || finishSurface == null)
         {
-            Debug.LogError("Finish surface is not assigned.", this);
+            Debug.LogError("Start and finish surfaces must be assigned.", this);
             enabled = false;
             return;
         }
 
         playerRigidbody = GetComponent<Rigidbody>();
+        CreateMessages();
     }
 
     private void LateUpdate()
@@ -33,6 +37,11 @@ public sealed class FinishGameOnTile : MonoBehaviour
         }
 
         Vector3 position = transform.position;
+        bool isOnStart =
+            Mathf.Abs(position.x - startSurface.position.x) <= surfaceHalfExtents.x &&
+            Mathf.Abs(position.z - startSurface.position.z) <= surfaceHalfExtents.y;
+        instructionsObject.SetActive(isOnStart);
+
         if (Mathf.Abs(position.x - finishSurface.position.x) > surfaceHalfExtents.x ||
             Mathf.Abs(position.z - finishSurface.position.z) > surfaceHalfExtents.y)
         {
@@ -48,7 +57,8 @@ public sealed class FinishGameOnTile : MonoBehaviour
             movementMachine.enabled = false;
         }
 
-        ShowGameOverMessage();
+        instructionsObject.SetActive(false);
+        gameOverObject.SetActive(true);
         LockPlayerAtFinish();
     }
 
@@ -62,27 +72,46 @@ public sealed class FinishGameOnTile : MonoBehaviour
         }
     }
 
-    private static void ShowGameOverMessage()
+    private void CreateMessages()
     {
         GameObject canvasObject = new GameObject(
-            "Game Over Canvas",
+            "Game Messages Canvas",
             typeof(Canvas),
             typeof(CanvasScaler),
             typeof(GraphicRaycaster));
 
         Canvas canvas = canvasObject.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = short.MaxValue;
+        canvas.sortingOrder = 100;
 
         CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920f, 1080f);
 
-        GameObject textObject = new GameObject(
+        instructionsObject = CreateMessage(
+            canvasObject.transform,
+            "Movement Instructions",
+            "POHYB DOPŘEDU W\nOTÁČENÍ R",
+            54f);
+        gameOverObject = CreateMessage(
+            canvasObject.transform,
             "Game Over Text",
+            "KONEC HRY",
+            72f);
+        gameOverObject.SetActive(false);
+    }
+
+    private static GameObject CreateMessage(
+        Transform parent,
+        string objectName,
+        string message,
+        float fontSize)
+    {
+        GameObject textObject = new GameObject(
+            objectName,
             typeof(RectTransform),
             typeof(TextMeshProUGUI));
-        textObject.transform.SetParent(canvasObject.transform, false);
+        textObject.transform.SetParent(parent, false);
 
         RectTransform textRect = textObject.GetComponent<RectTransform>();
         textRect.anchorMin = Vector2.zero;
@@ -91,11 +120,14 @@ public sealed class FinishGameOnTile : MonoBehaviour
         textRect.offsetMax = Vector2.zero;
 
         TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
-        text.text = "KONEC HRY";
+        text.font = TMP_Settings.defaultFontAsset;
+        text.text = message;
         text.color = Color.green;
-        text.fontSize = 72f;
+        text.fontSize = fontSize;
         text.fontStyle = FontStyles.Bold;
         text.alignment = TextAlignmentOptions.Center;
         text.raycastTarget = false;
+
+        return textObject;
     }
 }
